@@ -31,7 +31,7 @@ static void logmsg(const char *fmt, ...)
     va_end(ap);
 }
 
-char **decode_payload(char *encoded_payload)
+static char **decode_payload(char *encoded_payload)
 {
     size_t payload_len;
     g_base64_decode_inplace(encoded_payload, &payload_len);
@@ -46,7 +46,7 @@ char **decode_payload(char *encoded_payload)
     return g_strv_builder_end(builder);
 }
 
-void str_remove(char *s, size_t slen, char *r, size_t rlen)
+static void str_remove(char *s, size_t slen, char *r, size_t rlen)
 {
     char *ss = s;
     while (true) {
@@ -60,7 +60,7 @@ void str_remove(char *s, size_t slen, char *r, size_t rlen)
     }
 }
 
-void remove_bash_quote(char *s)
+static void remove_bash_quote(char *s)
 {
     size_t len = strlen(s);
     if (s[0] == '\'' || s[0] == '"') {
@@ -254,7 +254,7 @@ static bool run_server(const char *ttykey)
     return false;
 }
 
-void sigchld_handler(int signum)
+static void sigchld_handler(int signum)
 {
     if (current_pid) {
         int status;
