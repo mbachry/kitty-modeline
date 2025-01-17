@@ -1,0 +1,247 @@
+diff --git a/kitty/child.py b/kitty/child.py
+index 9f6eb7edf..637dbf1b1 100644
+--- a/kitty/child.py
++++ b/kitty/child.py
+@@ -200,6 +200,7 @@ class Child:
+     child_fd: Optional[int] = None
+     pid: Optional[int] = None
+     forked = False
++    child_tty: str | None = None
+ 
+     def __init__(
+         self,
+@@ -344,6 +345,7 @@ def fork(self) -> Optional[int]:
+         pid = fast_data_types.spawn(
+             final_exe, cwd, tuple(argv), env, master, slave, stdin_read_fd, stdin_write_fd,
+             ready_read_fd, ready_write_fd, tuple(handled_signals), kitten_exe(), opts.forward_stdio, pass_fds)
++        self.child_tty = os.ttyname(slave)
+         os.close(slave)
+         self.pid = pid
+         self.child_fd = master
+diff --git a/kitty/options/definition.py b/kitty/options/definition.py
+index 286592926..3ece113a2 100644
+--- a/kitty/options/definition.py
++++ b/kitty/options/definition.py
+@@ -1504,6 +1504,21 @@
+ egr()  # }}}
+ 
+ 
++# modeline {{{
++opt('modeline_command', '',
++    long_text='''
++Command to run in modeline. Set to empty string to disable modeline (default).
++'''
++    )
++opt('modeline_bg_color', '#444',
++    option_type='to_color_or_none', ctype='color_or_none_as_int',
++    long_text='''
++Background color for modeline.
++'''
++    )
++egr()  # }}}
++
++
+ # colors {{{
+ agr('colors', 'Color scheme')
+ 
+diff --git a/kitty/options/parse.py b/kitty/options/parse.py
+index a6143f68f..16b8f52f0 100644
+--- a/kitty/options/parse.py
++++ b/kitty/options/parse.py
+@@ -1313,6 +1313,12 @@ def tab_title_max_length(self, val: str, ans: typing.Dict[str, typing.Any]) -> N
+     def tab_title_template(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
+         ans['tab_title_template'] = tab_title_template(val)
+ 
++    def modeline_command(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
++        ans['modeline_command'] = str(val)
++
++    def modeline_bg_color(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
++        ans['modeline_bg_color'] = to_color_or_none(val)
++
+     def term(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
+         ans['term'] = str(val)
+ 
+diff --git a/kitty/options/types.py b/kitty/options/types.py
+index 823d15d6d..3fef8d8b1 100644
+--- a/kitty/options/types.py
++++ b/kitty/options/types.py
+@@ -440,6 +440,8 @@
+     'tab_switch_strategy',
+     'tab_title_max_length',
+     'tab_title_template',
++    'modeline_command',
++    'modeline_bg_color',
+     'term',
+     'terminfo_type',
+     'text_composition_strategy',
+@@ -608,6 +610,8 @@ class Options:
+     tab_switch_strategy: choices_for_tab_switch_strategy = 'previous'
+     tab_title_max_length: int = 0
+     tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{title}'
++    modeline_command: str = ''
++    modeline_bg_color: typing.Optional[kitty.fast_data_types.Color] = Color(40, 40, 40)
+     term: str = 'xterm-kitty'
+     terminfo_type: choices_for_terminfo_type = 'path'
+     text_composition_strategy: str = 'platform'
+@@ -1054,4 +1058,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
+ })
+ 
+ 
+-secret_options = ('remote_control_password', 'file_transfer_confirmation_bypass')
+\ No newline at end of file
++secret_options = ('remote_control_password', 'file_transfer_confirmation_bypass')
+diff --git a/kitty/tabs.py b/kitty/tabs.py
+index 64b415fbe..eb60da155 100644
+--- a/kitty/tabs.py
++++ b/kitty/tabs.py
+@@ -570,6 +570,7 @@ def new_window(
+         bias: Optional[float] = None,
+         pass_fds: tuple[int, ...] = (),
+         remote_control_fd: int = -1,
++        is_modeline: bool = False,
+     ) -> Window:
+         child = self.launch_child(
+             use_shell=use_shell, cmd=cmd, stdin=stdin, cwd_from=cwd_from, cwd=cwd, env=env,
+@@ -579,7 +580,8 @@ def new_window(
+         window = Window(
+             self, child, self.args, override_title=override_title,
+             copy_colors_from=copy_colors_from, watchers=watchers,
+-            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords
++            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords,
++            is_modeline=is_modeline
+         )
+         # Must add child before laying out so that resize_pty succeeds
+         get_boss().add_child(window)
+@@ -590,6 +592,7 @@ def new_window(
+             except Exception:
+                 import traceback
+                 traceback.print_exc()
++        self.add_modeline(window)
+         return window
+ 
+     def new_special_window(
+@@ -611,6 +614,19 @@ def new_special_window(
+             hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
+         )
+ 
++    def add_modeline(self, window: Window):
++        if window.is_modeline:
++            return
++        options = get_options()
++        if not options.modeline_command:
++            return
++        modeline = self.new_window(
++            cmd=[options.modeline_command, window.child.child_tty],
++            overlay_for=window.id,
++            is_modeline=True
++        )
++        modeline.screen.color_profile.default_bg = options.modeline_bg_color
++
+     @ac('win', 'Close all windows in the tab other than the currently active window')
+     def close_other_windows_in_tab(self) -> None:
+         if len(self.windows) > 1:
+diff --git a/kitty/window.py b/kitty/window.py
+index 92e9f42b5..a9210a194 100644
+--- a/kitty/window.py
++++ b/kitty/window.py
+@@ -619,6 +619,7 @@ def __init__(
+         watchers: Optional[Watchers] = None,
+         allow_remote_control: bool = False,
+         remote_control_passwords: Optional[dict[str, Sequence[str]]] = None,
++        is_modeline: bool = False,
+     ):
+         if watchers:
+             self.watchers = watchers
+@@ -676,6 +677,7 @@ def __init__(
+             self.screen.copy_colors_from(copy_colors_from.screen)
+         self.remote_control_passwords = remote_control_passwords
+         self.allow_remote_control = allow_remote_control
++        self.is_modeline = is_modeline
+ 
+     def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
+         if not self.allow_remote_control:
+@@ -740,6 +742,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: Optional[float])
+             self.update_effective_padding()
+ 
+     def effective_border(self) -> int:
++        if self.is_modeline:
++            return 0
+         val, unit = get_options().window_border_width
+         if unit == 'pt':
+             val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
+diff --git a/kitty/window_list.py b/kitty/window_list.py
+index 690ebb138..aa52159dd 100644
+--- a/kitty/window_list.py
++++ b/kitty/window_list.py
+@@ -8,7 +8,7 @@
+ from itertools import count
+ from typing import Any, Deque, Optional, Union
+ 
+-from .fast_data_types import Color, get_options
++from .fast_data_types import Color, cell_size_for_window, get_boss, get_options
+ from .types import OverlayType, WindowGeometry
+ from .typing import EdgeLiteral, TabType, WindowType
+ 
+@@ -32,6 +32,7 @@ class WindowGroup:
+     def __init__(self) -> None:
+         self.windows: list[WindowType] = []
+         self.id = next(group_id_counter)
++        self.modeline = None
+ 
+     def __len__(self) -> int:
+         return len(self.windows)
+@@ -67,6 +68,10 @@ def active_window_id(self) -> int:
+         return self.windows[-1].id if self.windows else 0
+ 
+     def add_window(self, window: WindowType, head_of_group: bool = False) -> None:
++        if window.is_modeline:
++            assert self.modeline is not None, 'cannot add modeline twice'
++            self.modeline = window
++            return
+         if head_of_group:
+             self.windows.insert(0, window)
+         else:
+@@ -84,8 +89,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
+         return True
+ 
+     def remove_window(self, window: WindowType) -> None:
++        if window == self.modeline:
++            self.modeline = None
++            return
+         with suppress(ValueError):
+             self.windows.remove(window)
++        if not self.windows and self.modeline:
++            get_boss().mark_window_for_close(self.modeline)
++            self.modeline = None
+ 
+     def serialize_state(self) -> dict[str, Any]:
+         return {
+@@ -118,8 +129,18 @@ def effective_border(self) -> int:
+         return w.effective_border()
+ 
+     def set_geometry(self, geom: WindowGeometry) -> None:
++        if not self.windows:
++            return
++        if not self.modeline:
++            for w in self.windows:
++                w.set_geometry(geom)
++            return
++        _, cell_height = cell_size_for_window(self.windows[0].os_window_id)
++        modeline_geom = WindowGeometry(geom.left, geom.bottom - cell_height, geom.right, geom.bottom, geom.xnum, 1, spaces=geom.spaces)
++        self.modeline.set_geometry(modeline_geom)
++        new_geom = WindowGeometry(geom.left, geom.top, geom.right, geom.bottom - cell_height, geom.xnum, geom.ynum - 1, spaces=geom.spaces)
+         for w in self.windows:
+-            w.set_geometry(geom)
++            w.set_geometry(new_geom)
+ 
+     @property
+     def default_bg(self) -> Color:
+@@ -321,6 +342,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: Optional[Wi
+             return
+         for i, group in enumerate(self.groups):
+             if q in group:
++                if q.is_modeline:
++                    continue
+                 self.set_active_group_idx(i)
+                 h = self.active_group_history
+                 if for_keep_focus and len(h) > 2 and h[-2] == for_keep_focus.id and h[-1] != for_keep_focus.id:
