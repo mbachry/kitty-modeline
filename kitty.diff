@@ -286,7 +286,7 @@ index 690ebb138..aa52159dd 100644
 +            # we have to set "fake" geometry for invisible modeline,
 +            # otherwise the child process won't launch
 +            if self.modeline:
-+                modeline_geom = WindowGeometry(geom.left, geom.bottom, geom.right, geom.bottom, 0, 0)
++                modeline_geom = WindowGeometry(geom.right, geom.bottom, geom.right, geom.bottom, 0, 0, spaces=geom.spaces)
 +                self.modeline.set_geometry(modeline_geom)
 +            return
 +        _, cell_height = cell_size_for_window(self.windows[0].os_window_id)
