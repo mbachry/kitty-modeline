@@ -85,21 +85,20 @@ static bool do_update(char **envp)
         char *key = *part;
         char *val = strchr(key, '=');
         assert(val != NULL);
-        size_t keylen = val - key;
         ++val;
 
-        if (!strncmp(key, "PWD", keylen)) {
+        if (g_str_has_prefix(key, "PWD=")) {
             remove_bash_quote(val);
             cwd = strdup(val);
-        } else if (!strncmp(key, "COLUMNS", keylen))
+        } else if (g_str_has_prefix(key, "COLUMNS="))
             n_columns = strdup(val);
-        else if (!strncmp(key, "STARSHIP_CMD_STATUS", keylen))
+        else if (g_str_has_prefix(key, "STARSHIP_CMD_STATUS="))
             cmd_status = strdup(val);
-        else if (!strncmp(key, "STARSHIP_PIPE_STATUS", keylen))
+        else if (g_str_has_prefix(key, "STARSHIP_PIPE_STATUS="))
             pipe_status = strdup(val);
-        else if (!strncmp(key, "STARSHIP_DURATION", keylen))
+        else if (g_str_has_prefix(key, "STARSHIP_DURATION="))
             duration = strdup(val);
-        else if (!strncmp(key, "NUM_JOBS", keylen))
+        else if (g_str_has_prefix(key, "NUM_JOBS="))
             n_jobs = strdup(val);
     }
 
