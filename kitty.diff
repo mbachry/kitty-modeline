@@ -140,21 +140,22 @@ diff --git a/kitty/tabs.py b/kitty/tabs.py
 index 64b415fbe..eb60da155 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -570,6 +570,7 @@ def new_window(
+@@ -570,6 +570,8 @@ def new_window(
          bias: Optional[float] = None,
          pass_fds: tuple[int, ...] = (),
          remote_control_fd: int = -1,
++        scrollback_lines: Optional[int] = None,
 +        is_modeline: bool = False,
      ) -> Window:
          child = self.launch_child(
              use_shell=use_shell, cmd=cmd, stdin=stdin, cwd_from=cwd_from, cwd=cwd, env=env,
-@@ -579,7 +580,8 @@ def new_window(
+@@ -579,7 +581,8 @@ def new_window(
          window = Window(
              self, child, self.args, override_title=override_title,
              copy_colors_from=copy_colors_from, watchers=watchers,
 -            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords
 +            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords,
-+            is_modeline=is_modeline
++            scrollback_lines=scrollback_lines, is_modeline=is_modeline
          )
          # Must add child before laying out so that resize_pty succeeds
          get_boss().add_child(window)
@@ -180,6 +181,7 @@ index 64b415fbe..eb60da155 100644
 +            cmd=[options.modeline_command, window.child.child_tty],
 +            overlay_for=window.id,
 +            allow_remote_control=True,
++            scrollback_lines=0,
 +            is_modeline=True
 +        )
 +        modeline.screen.color_profile.default_bg = options.modeline_bg_color
@@ -191,15 +193,23 @@ diff --git a/kitty/window.py b/kitty/window.py
 index 92e9f42b5..a9210a194 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -619,6 +619,7 @@ def __init__(
+@@ -619,6 +619,8 @@ def __init__(
          watchers: Optional[Watchers] = None,
          allow_remote_control: bool = False,
          remote_control_passwords: Optional[dict[str, Sequence[str]]] = None,
 +        is_modeline: bool = False,
++        scrollback_lines: Optional[int] = None,
      ):
          if watchers:
              self.watchers = watchers
-@@ -676,6 +677,7 @@ def __init__(
+@@ -671,11 +673,13 @@ def __init__(
+         self.child = child
+         cell_width, cell_height = cell_size_for_window(self.os_window_id)
+         opts = get_options()
+-        self.screen: Screen = Screen(self, 24, 80, opts.scrollback_lines, cell_width, cell_height, self.id)
++        scrollback_lines = opts.scrollback_lines if scrollback_lines is None else scrollback_lines
++        self.screen: Screen = Screen(self, 24, 80, scrollback_lines, cell_width, cell_height, self.id)
+         if copy_colors_from is not None:
              self.screen.copy_colors_from(copy_colors_from.screen)
          self.remote_control_passwords = remote_control_passwords
          self.allow_remote_control = allow_remote_control
