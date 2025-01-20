@@ -90,6 +90,52 @@ index 823d15d6d..3fef8d8b1 100644
 -secret_options = ('remote_control_password', 'file_transfer_confirmation_bypass')
 \ No newline at end of file
 +secret_options = ('remote_control_password', 'file_transfer_confirmation_bypass')
+diff --git a/kitty/rc/modeline.py b/kitty/rc/modeline.py
+new file mode 100644
+index 000000000..6f45e9ede
+--- /dev/null
++++ b/kitty/rc/modeline.py
+@@ -0,0 +1,40 @@
++#!/usr/bin/env python
++from typing import Optional
++
++from .base import MATCH_WINDOW_OPTION, ArgsType, Boss, PayloadGetType, PayloadType, RCOptions, RemoteCommand, ResponseType, Window
++
++
++class Modeline(RemoteCommand):
++    protocol_spec = __doc__ = '''
++    match/str: Modeline window id
++    '''
++
++    short_desc = 'Control modeline'
++    desc = 'Control modeline.'
++    options_spec = MATCH_WINDOW_OPTION + '''\n\n
++--no-response
++type=bool-set
++default=false
++Don't wait for a response from kitty. This means that even if no matching window is found,
++the command will exit with a success code.
++'''
++    def message_to_kitty(self, global_opts: RCOptions, opts, args: ArgsType) -> PayloadType:
++        return {'match': opts.match, 'visible': opts.visible}
++
++    def response_from_kitty(self, boss: Boss, window: Optional[Window], payload_get: PayloadGetType) -> ResponseType:
++        visible = payload_get('visible')
++        for window in self.windows_for_match_payload(boss, window, payload_get):
++            if window:
++                tab = window.tabref()
++                if not tab:
++                    continue
++                for group in tab.windows.groups:
++                    if group.modeline and group.modeline.id == window.id and group.modeline_visible is not visible:
++                        group.modeline_visible = visible
++                        window.set_visible_in_layout(visible)
++                        tab.relayout()
++                break
++        return None
++
++
++modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
 index 64b415fbe..eb60da155 100644
 --- a/kitty/tabs.py
@@ -133,6 +179,7 @@ index 64b415fbe..eb60da155 100644
 +        modeline = self.new_window(
 +            cmd=[options.modeline_command, window.child.child_tty],
 +            overlay_for=window.id,
++            allow_remote_control=True,
 +            is_modeline=True
 +        )
 +        modeline.screen.color_profile.default_bg = options.modeline_bg_color
@@ -182,11 +229,12 @@ index 690ebb138..aa52159dd 100644
  from .types import OverlayType, WindowGeometry
  from .typing import EdgeLiteral, TabType, WindowType
  
-@@ -32,6 +32,7 @@ class WindowGroup:
+@@ -32,6 +32,8 @@ class WindowGroup:
      def __init__(self) -> None:
          self.windows: list[WindowType] = []
          self.id = next(group_id_counter)
 +        self.modeline = None
++        self.modeline_visible = False
  
      def __len__(self) -> int:
          return len(self.windows)
@@ -222,9 +270,14 @@ index 690ebb138..aa52159dd 100644
      def set_geometry(self, geom: WindowGeometry) -> None:
 +        if not self.windows:
 +            return
-+        if not self.modeline:
++        if not self.modeline or not self.modeline_visible:
 +            for w in self.windows:
 +                w.set_geometry(geom)
++            # we have to set "fake" geometry for invisible modeline,
++            # otherwise the child process won't launch
++            if self.modeline:
++                modeline_geom = WindowGeometry(geom.left, geom.bottom, geom.right, geom.bottom, 0, 0)
++                self.modeline.set_geometry(modeline_geom)
 +            return
 +        _, cell_height = cell_size_for_window(self.windows[0].os_window_id)
 +        modeline_geom = WindowGeometry(geom.left, geom.bottom - cell_height, geom.right, geom.bottom, geom.xnum, 1, spaces=geom.spaces)

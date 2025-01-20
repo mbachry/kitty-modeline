@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 static pid_t current_pid = 0;
+static const char *kitty_window_id = NULL;
 
 static void logmsg(const char *fmt, ...)
 {
@@ -187,6 +188,11 @@ static bool do_update(char **envp)
     str_remove(output, outlen, "\\[", 2);
     str_remove(output, outlen, "\\]", 2);
 
+    const char *visible = strlen(output) > 0 ? "true" : "false";
+
+    printf("\x1bP@kitty-cmd{\"cmd\":\"modeline\",\"version\":[0,39,0],\"no_response\":true,\"payload\":{\"match\":\"id:"
+           "%s\",\"visible\":%s}}\x1b\\",
+           kitty_window_id, visible);
     printf("\x1b[2K\r%s", output);
     fflush(stdout);
 
@@ -291,6 +297,12 @@ int main(int argc, char *argv[])
     g_autofree char *ttykey = strdup(argv[1]);
     assert(ttykey != NULL);
     escape_tty_key_inplace(ttykey);
+
+    kitty_window_id = getenv("KITTY_WINDOW_ID");
+    if (!kitty_window_id) {
+        logmsg("ERROR: missing KITTY_WINDOW_ID env var");
+        return 1;
+    }
 
     char **dump = read_dump(ttykey);
     if (dump) {
