@@ -137,7 +137,7 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 64b415fbe..eb60da155 100644
+index 64b415fbe..5f0328c0c 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
 @@ -570,6 +570,8 @@ def new_window(
@@ -168,7 +168,7 @@ index 64b415fbe..eb60da155 100644
          return window
  
      def new_special_window(
-@@ -611,6 +614,19 @@ def new_special_window(
+@@ -611,6 +616,21 @@ def new_special_window(
              hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
          )
  
@@ -191,7 +191,7 @@ index 64b415fbe..eb60da155 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index 92e9f42b5..a9210a194 100644
+index 92e9f42b5..886ef6148 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
 @@ -619,6 +619,8 @@ def __init__(
@@ -218,7 +218,7 @@ index 92e9f42b5..a9210a194 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -740,6 +742,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: Optional[float])
+@@ -740,6 +744,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: Optional[float])
              self.update_effective_padding()
  
      def effective_border(self) -> int:
@@ -228,7 +228,7 @@ index 92e9f42b5..a9210a194 100644
          if unit == 'pt':
              val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
 diff --git a/kitty/window_list.py b/kitty/window_list.py
-index 690ebb138..aa52159dd 100644
+index 690ebb138..02a16eea1 100644
 --- a/kitty/window_list.py
 +++ b/kitty/window_list.py
 @@ -8,7 +8,7 @@
@@ -249,7 +249,7 @@ index 690ebb138..aa52159dd 100644
  
      def __len__(self) -> int:
          return len(self.windows)
-@@ -67,6 +68,10 @@ def active_window_id(self) -> int:
+@@ -67,6 +69,10 @@ def active_window_id(self) -> int:
          return self.windows[-1].id if self.windows else 0
  
      def add_window(self, window: WindowType, head_of_group: bool = False) -> None:
@@ -260,7 +260,7 @@ index 690ebb138..aa52159dd 100644
          if head_of_group:
              self.windows.insert(0, window)
          else:
-@@ -84,8 +89,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
+@@ -84,8 +90,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
          return True
  
      def remove_window(self, window: WindowType) -> None:
@@ -275,7 +275,7 @@ index 690ebb138..aa52159dd 100644
  
      def serialize_state(self) -> dict[str, Any]:
          return {
-@@ -118,8 +129,18 @@ def effective_border(self) -> int:
+@@ -118,8 +130,23 @@ def effective_border(self) -> int:
          return w.effective_border()
  
      def set_geometry(self, geom: WindowGeometry) -> None:
@@ -300,7 +300,7 @@ index 690ebb138..aa52159dd 100644
  
      @property
      def default_bg(self) -> Color:
-@@ -321,6 +342,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: Optional[Wi
+@@ -321,6 +348,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: Optional[Wi
              return
          for i, group in enumerate(self.groups):
              if q in group:
