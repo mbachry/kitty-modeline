@@ -159,11 +159,12 @@ index 64b415fbe..eb60da155 100644
          )
          # Must add child before laying out so that resize_pty succeeds
          get_boss().add_child(window)
-@@ -590,6 +592,7 @@ def new_window(
+@@ -590,6 +593,8 @@ def new_window(
              except Exception:
                  import traceback
                  traceback.print_exc()
-+        self.add_modeline(window)
++        if not overlay_for:
++            self.add_modeline(window)
          return window
  
      def new_special_window(
