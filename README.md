@@ -34,6 +34,9 @@ for the repo in the current directory using starship's `custom` rule.
 
 At the moment patching `kitty` is required.
 
+Clone the repo with `--recurse-submodules` or run `git submodule init`
+and `git submodule update` after cloning.
+
 You need C compiler, `meson` and `glib`. Type `make` to build helper
 commands and patch `kitty`. Move `build/kitty-modeline` and
 `build/kitty-modeline-client` to your favorite location,
