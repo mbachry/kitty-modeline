@@ -1,16 +1,16 @@
 diff --git a/kitty/child.py b/kitty/child.py
-index 9f6eb7edf..637dbf1b1 100644
+index be8d8a463..da5cc764e 100644
 --- a/kitty/child.py
 +++ b/kitty/child.py
-@@ -200,6 +200,7 @@ class Child:
-     child_fd: Optional[int] = None
-     pid: Optional[int] = None
+@@ -208,6 +208,7 @@ class Child:
+     child_fd: int | None = None
+     pid: int | None = None
      forked = False
 +    child_tty: str | None = None
  
      def __init__(
          self,
-@@ -344,6 +345,7 @@ def fork(self) -> Optional[int]:
+@@ -352,6 +353,7 @@ def fork(self) -> int | None:
          pid = fast_data_types.spawn(
              final_exe, cwd, tuple(argv), env, master, slave, stdin_read_fd, stdin_write_fd,
              ready_read_fd, ready_write_fd, tuple(handled_signals), kitten_exe(), opts.forward_stdio, pass_fds)
@@ -19,10 +19,10 @@ index 9f6eb7edf..637dbf1b1 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 286592926..3ece113a2 100644
+index eeb8ea77b..2dab9d966 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1504,6 +1504,21 @@
+@@ -1480,6 +1480,21 @@
  egr()  # }}}
  
  
@@ -45,11 +45,11 @@ index 286592926..3ece113a2 100644
  agr('colors', 'Color scheme')
  
 diff --git a/kitty/options/parse.py b/kitty/options/parse.py
-index a6143f68f..16b8f52f0 100644
+index 25d6c0232..ab231486c 100644
 --- a/kitty/options/parse.py
 +++ b/kitty/options/parse.py
-@@ -1313,6 +1313,12 @@ def tab_title_max_length(self, val: str, ans: typing.Dict[str, typing.Any]) -> N
-     def tab_title_template(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
+@@ -1309,6 +1309,12 @@ def tab_title_max_length(self, val: str, ans: dict[str, typing.Any]) -> None:
+     def tab_title_template(self, val: str, ans: dict[str, typing.Any]) -> None:
          ans['tab_title_template'] = tab_title_template(val)
  
 +    def modeline_command(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
@@ -58,11 +58,11 @@ index a6143f68f..16b8f52f0 100644
 +    def modeline_bg_color(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
 +        ans['modeline_bg_color'] = to_color_or_none(val)
 +
-     def term(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
+     def term(self, val: str, ans: dict[str, typing.Any]) -> None:
          ans['term'] = str(val)
  
 diff --git a/kitty/options/types.py b/kitty/options/types.py
-index 823d15d6d..3fef8d8b1 100644
+index ae04efde0..ee6d33378 100644
 --- a/kitty/options/types.py
 +++ b/kitty/options/types.py
 @@ -440,6 +440,8 @@
@@ -74,7 +74,7 @@ index 823d15d6d..3fef8d8b1 100644
      'term',
      'terminfo_type',
      'text_composition_strategy',
-@@ -608,6 +610,8 @@ class Options:
+@@ -609,6 +611,8 @@ class Options:
      tab_switch_strategy: choices_for_tab_switch_strategy = 'previous'
      tab_title_max_length: int = 0
      tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{title}'
@@ -83,7 +83,7 @@ index 823d15d6d..3fef8d8b1 100644
      term: str = 'xterm-kitty'
      terminfo_type: choices_for_terminfo_type = 'path'
      text_composition_strategy: str = 'platform'
-@@ -1054,4 +1058,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
+@@ -1056,4 +1060,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
  })
  
  
@@ -137,19 +137,19 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 64b415fbe..5f0328c0c 100644
+index ae5576f00..d58bcb6db 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -570,6 +570,8 @@ def new_window(
-         bias: Optional[float] = None,
+@@ -561,6 +561,8 @@ def new_window(
          pass_fds: tuple[int, ...] = (),
          remote_control_fd: int = -1,
+         next_to: Window | None = None,
 +        scrollback_lines: Optional[int] = None,
 +        is_modeline: bool = False,
      ) -> Window:
          child = self.launch_child(
              use_shell=use_shell, cmd=cmd, stdin=stdin, cwd_from=cwd_from, cwd=cwd, env=env,
-@@ -579,7 +581,8 @@ def new_window(
+@@ -570,7 +572,8 @@ def new_window(
          window = Window(
              self, child, self.args, override_title=override_title,
              copy_colors_from=copy_colors_from, watchers=watchers,
@@ -159,7 +159,7 @@ index 64b415fbe..5f0328c0c 100644
          )
          # Must add child before laying out so that resize_pty succeeds
          get_boss().add_child(window)
-@@ -590,6 +593,8 @@ def new_window(
+@@ -581,6 +584,8 @@ def new_window(
              except Exception:
                  import traceback
                  traceback.print_exc()
@@ -168,7 +168,7 @@ index 64b415fbe..5f0328c0c 100644
          return window
  
      def new_special_window(
-@@ -611,6 +616,21 @@ def new_special_window(
+@@ -602,6 +607,21 @@ def new_special_window(
              hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
          )
  
@@ -191,19 +191,19 @@ index 64b415fbe..5f0328c0c 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index 92e9f42b5..886ef6148 100644
+index 2ddcc977e..f923d86a3 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -619,6 +619,8 @@ def __init__(
-         watchers: Optional[Watchers] = None,
+@@ -622,6 +622,8 @@ def __init__(
+         watchers: Watchers | None = None,
          allow_remote_control: bool = False,
-         remote_control_passwords: Optional[dict[str, Sequence[str]]] = None,
+         remote_control_passwords: dict[str, Sequence[str]] | None = None,
 +        is_modeline: bool = False,
 +        scrollback_lines: Optional[int] = None,
      ):
          if watchers:
              self.watchers = watchers
-@@ -671,11 +673,13 @@ def __init__(
+@@ -674,11 +676,13 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -218,7 +218,7 @@ index 92e9f42b5..886ef6148 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -740,6 +744,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: Optional[float])
+@@ -743,6 +747,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
@@ -228,12 +228,12 @@ index 92e9f42b5..886ef6148 100644
          if unit == 'pt':
              val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
 diff --git a/kitty/window_list.py b/kitty/window_list.py
-index 690ebb138..02a16eea1 100644
+index beaf1d216..315febf03 100644
 --- a/kitty/window_list.py
 +++ b/kitty/window_list.py
 @@ -8,7 +8,7 @@
  from itertools import count
- from typing import Any, Deque, Optional, Union
+ from typing import Any, Deque, Union
  
 -from .fast_data_types import Color, get_options
 +from .fast_data_types import Color, cell_size_for_window, get_boss, get_options
@@ -300,7 +300,7 @@ index 690ebb138..02a16eea1 100644
  
      @property
      def default_bg(self) -> Color:
-@@ -321,6 +348,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: Optional[Wi
+@@ -321,6 +348,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
              return
          for i, group in enumerate(self.groups):
              if q in group:
