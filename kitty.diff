@@ -19,10 +19,10 @@ index cfe62b03b..8d4a74834 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index dc4585b70..e6c79fe90 100644
+index 34e39fc3f..d224278d9 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1490,6 +1490,21 @@
+@@ -1501,6 +1501,21 @@
  egr()  # }}}
  
  
@@ -45,7 +45,7 @@ index dc4585b70..e6c79fe90 100644
  agr('colors', 'Color scheme')
  
 diff --git a/kitty/options/parse.py b/kitty/options/parse.py
-index 5ef090a26..4701051e9 100644
+index 7b046bc36..a3ae84faa 100644
 --- a/kitty/options/parse.py
 +++ b/kitty/options/parse.py
 @@ -1312,6 +1312,12 @@ def tab_title_max_length(self, val: str, ans: dict[str, typing.Any]) -> None:
@@ -62,7 +62,7 @@ index 5ef090a26..4701051e9 100644
          ans['term'] = str(val)
  
 diff --git a/kitty/options/types.py b/kitty/options/types.py
-index 0909b44e6..934845ed1 100644
+index 0949ccc83..d903d3363 100644
 --- a/kitty/options/types.py
 +++ b/kitty/options/types.py
 @@ -441,6 +441,8 @@
@@ -191,10 +191,10 @@ index 0b04f385e..f3ef9fd29 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index 234fd63ed..2a1fdb1eb 100644
+index 9ff5cd6bd..ae526a104 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -622,6 +622,8 @@ def __init__(
+@@ -623,6 +623,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -203,7 +203,7 @@ index 234fd63ed..2a1fdb1eb 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -675,11 +677,13 @@ def __init__(
+@@ -676,11 +678,13 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -218,7 +218,7 @@ index 234fd63ed..2a1fdb1eb 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -744,6 +748,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -745,6 +749,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
