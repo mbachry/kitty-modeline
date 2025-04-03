@@ -19,7 +19,7 @@ index cfe62b03b..8d4a74834 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 34e39fc3f..d224278d9 100644
+index 660984dcd..559a387be 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
 @@ -1501,6 +1501,21 @@
