@@ -1,5 +1,5 @@
 diff --git a/kitty/child.py b/kitty/child.py
-index cfe62b03b..8d4a74834 100644
+index 1f45990b4..26c48d2b3 100644
 --- a/kitty/child.py
 +++ b/kitty/child.py
 @@ -208,6 +208,7 @@ class Child:
@@ -19,10 +19,10 @@ index cfe62b03b..8d4a74834 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 660984dcd..559a387be 100644
+index 7ba13c0b8..303f8e083 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1501,6 +1501,21 @@
+@@ -1539,6 +1539,21 @@
  egr()  # }}}
  
  
@@ -45,7 +45,7 @@ index 660984dcd..559a387be 100644
  agr('colors', 'Color scheme')
  
 diff --git a/kitty/options/parse.py b/kitty/options/parse.py
-index 7b046bc36..a3ae84faa 100644
+index bc11eddc9..7f0375837 100644
 --- a/kitty/options/parse.py
 +++ b/kitty/options/parse.py
 @@ -1312,6 +1312,12 @@ def tab_title_max_length(self, val: str, ans: dict[str, typing.Any]) -> None:
@@ -62,7 +62,7 @@ index 7b046bc36..a3ae84faa 100644
          ans['term'] = str(val)
  
 diff --git a/kitty/options/types.py b/kitty/options/types.py
-index 0949ccc83..d903d3363 100644
+index 8e6a75446..09d37890d 100644
 --- a/kitty/options/types.py
 +++ b/kitty/options/types.py
 @@ -441,6 +441,8 @@
@@ -137,7 +137,7 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 0b04f385e..f3ef9fd29 100644
+index ed5013398..5f06ac228 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
 @@ -568,6 +568,8 @@ def new_window(
@@ -191,7 +191,7 @@ index 0b04f385e..f3ef9fd29 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index 9ff5cd6bd..ae526a104 100644
+index 16540e2c5..8664dc6a4 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
 @@ -623,6 +623,8 @@ def __init__(
@@ -228,7 +228,7 @@ index 9ff5cd6bd..ae526a104 100644
          if unit == 'pt':
              val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
 diff --git a/kitty/window_list.py b/kitty/window_list.py
-index beaf1d216..315febf03 100644
+index 0c4055f7b..f7b7fa083 100644
 --- a/kitty/window_list.py
 +++ b/kitty/window_list.py
 @@ -8,7 +8,7 @@
@@ -238,7 +238,7 @@ index beaf1d216..315febf03 100644
 -from .fast_data_types import Color, get_options
 +from .fast_data_types import Color, cell_size_for_window, get_boss, get_options
  from .types import OverlayType, WindowGeometry
- from .typing import EdgeLiteral, TabType, WindowType
+ from .typing_compat import EdgeLiteral, TabType, WindowType
  
 @@ -32,6 +32,8 @@ class WindowGroup:
      def __init__(self) -> None:
