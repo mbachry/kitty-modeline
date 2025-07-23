@@ -1,5 +1,5 @@
 diff --git a/kitty/child.py b/kitty/child.py
-index 1f45990b4..26c48d2b3 100644
+index 40f7667a9..522a879f7 100644
 --- a/kitty/child.py
 +++ b/kitty/child.py
 @@ -208,6 +208,7 @@ class Child:
@@ -10,7 +10,7 @@ index 1f45990b4..26c48d2b3 100644
  
      def __init__(
          self,
-@@ -352,6 +353,7 @@ def fork(self) -> int | None:
+@@ -353,6 +354,7 @@ def fork(self) -> int | None:
          pid = fast_data_types.spawn(
              final_exe, cwd, tuple(argv), env, master, slave, stdin_read_fd, stdin_write_fd,
              ready_read_fd, ready_write_fd, tuple(handled_signals), kitten_exe(), opts.forward_stdio, pass_fds)
@@ -19,10 +19,10 @@ index 1f45990b4..26c48d2b3 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 86144248a..b25bd494c 100644
+index 65403b625..aabb154b0 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1551,6 +1551,21 @@
+@@ -1554,6 +1554,21 @@
  egr()  # }}}
  
  
@@ -137,19 +137,21 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 342990148..52836ecbc 100644
+index da22cbc06..abc3db842 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -568,6 +568,8 @@ def new_window(
+@@ -569,7 +569,9 @@ def new_window(
          pass_fds: tuple[int, ...] = (),
          remote_control_fd: int = -1,
          next_to: Window | None = None,
+-        hold_after_ssh: bool = False
++        hold_after_ssh: bool = False,
 +        scrollback_lines: Optional[int] = None,
 +        is_modeline: bool = False,
      ) -> Window:
          child = self.launch_child(
              use_shell=use_shell, cmd=cmd, stdin=stdin, cwd_from=cwd_from, cwd=cwd, env=env,
-@@ -577,7 +579,8 @@ def new_window(
+@@ -579,7 +581,8 @@ def new_window(
          window = Window(
              self, child, self.args, override_title=override_title,
              copy_colors_from=copy_colors_from, watchers=watchers,
@@ -159,7 +161,7 @@ index 342990148..52836ecbc 100644
          )
          # Must add child before laying out so that resize_pty succeeds
          get_boss().add_child(window)
-@@ -588,6 +591,8 @@ def new_window(
+@@ -590,6 +593,8 @@ def new_window(
              except Exception:
                  import traceback
                  traceback.print_exc()
@@ -168,7 +170,7 @@ index 342990148..52836ecbc 100644
          return window
  
      def new_special_window(
-@@ -609,6 +614,21 @@ def new_special_window(
+@@ -611,6 +616,21 @@ def new_special_window(
              hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
          )
  
@@ -191,10 +193,10 @@ index 342990148..52836ecbc 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index 16540e2c5..8664dc6a4 100644
+index 778cbb57c..9bf2f9731 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -623,6 +623,8 @@ def __init__(
+@@ -634,6 +634,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -203,7 +205,7 @@ index 16540e2c5..8664dc6a4 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -676,11 +678,13 @@ def __init__(
+@@ -687,11 +689,13 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -218,7 +220,7 @@ index 16540e2c5..8664dc6a4 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -745,6 +749,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -756,6 +760,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
