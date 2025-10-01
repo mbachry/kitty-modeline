@@ -19,7 +19,7 @@ index 606f26e0e..e9014f794 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 11f947909..a3c3b4423 100644
+index 124df26b0..a8f742e98 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
 @@ -1663,6 +1663,21 @@
@@ -137,10 +137,10 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 30d76c85b..3269f0a13 100644
+index fbcc17827..458679eab 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -635,6 +635,8 @@ def new_window(
+@@ -641,6 +641,8 @@ def new_window(
          next_to: Window | None = None,
          hold_after_ssh: bool = False,
          startup_command_via_shell_integration: Sequence[str] | str = (),
@@ -149,7 +149,7 @@ index 30d76c85b..3269f0a13 100644
      ) -> Window:
          cs = WindowCreationSpec(
              use_shell=use_shell, cmd=cmd, has_stdin=bool(stdin), override_title=override_title, cwd_from=cwd_from,
-@@ -654,7 +656,8 @@ def new_window(
+@@ -660,7 +662,8 @@ def new_window(
          window = Window(
              self, child, self.args, override_title=override_title,
              copy_colors_from=copy_colors_from, watchers=watchers,
@@ -159,7 +159,7 @@ index 30d76c85b..3269f0a13 100644
          )
          window.creation_spec = cs
          # Must add child before laying out so that resize_pty succeeds
-@@ -666,6 +669,8 @@ def new_window(
+@@ -672,6 +675,8 @@ def new_window(
              except Exception:
                  import traceback
                  traceback.print_exc()
@@ -168,7 +168,7 @@ index 30d76c85b..3269f0a13 100644
          return window
  
      def new_special_window(
-@@ -687,6 +692,21 @@ def new_special_window(
+@@ -693,6 +698,21 @@ def new_special_window(
              hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
          )
  
