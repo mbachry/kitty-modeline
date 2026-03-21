@@ -19,10 +19,10 @@ index 1e3629549..438af6517 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 35845be98..ad1ac4021 100644
+index e037a17af..aa40c2f02 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1818,6 +1818,21 @@
+@@ -1820,6 +1820,21 @@
  egr()  # }}}
  
  
@@ -137,10 +137,10 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 7174bd744..0288d6006 100644
+index ff3e4d3c4..1dce4f59f 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -719,6 +719,8 @@ def new_window(
+@@ -721,6 +721,8 @@ def new_window(
          next_to: Window | None = None,
          hold_after_ssh: bool = False,
          startup_command_via_shell_integration: Sequence[str] | str = (),
@@ -149,7 +149,7 @@ index 7174bd744..0288d6006 100644
      ) -> Window:
          cs = WindowCreationSpec(
              use_shell=use_shell, cmd=cmd, has_stdin=bool(stdin), override_title=override_title, cwd_from=cwd_from,
-@@ -738,7 +740,8 @@ def new_window(
+@@ -740,7 +742,8 @@ def new_window(
          window = Window(
              self, child, self.args, override_title=override_title,
              copy_colors_from=copy_colors_from, watchers=watchers,
@@ -159,7 +159,7 @@ index 7174bd744..0288d6006 100644
          )
          window.creation_spec = cs
          # Must add child before laying out so that resize_pty succeeds
-@@ -750,6 +753,8 @@ def new_window(
+@@ -752,6 +755,8 @@ def new_window(
              except Exception:
                  import traceback
                  traceback.print_exc()
@@ -168,7 +168,7 @@ index 7174bd744..0288d6006 100644
          return window
  
      def new_special_window(
-@@ -771,6 +776,21 @@ def new_special_window(
+@@ -773,6 +778,21 @@ def new_special_window(
              hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
          )
  
@@ -191,10 +191,10 @@ index 7174bd744..0288d6006 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index b53f7ce66..8d5f1461e 100644
+index 8b3f00cf7..6d9ffc8f2 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -685,6 +685,8 @@ def __init__(
+@@ -692,6 +692,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -203,7 +203,7 @@ index b53f7ce66..8d5f1461e 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -740,11 +742,13 @@ def __init__(
+@@ -747,11 +749,13 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -218,7 +218,7 @@ index b53f7ce66..8d5f1461e 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -809,6 +813,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -816,6 +820,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
