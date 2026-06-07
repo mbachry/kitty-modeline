@@ -137,7 +137,7 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index a1026681f..2eaf52600 100644
+index 28f86a5e0..ba2fb773a 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
 @@ -759,6 +759,8 @@ def new_window(
