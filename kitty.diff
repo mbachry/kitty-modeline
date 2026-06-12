@@ -19,10 +19,10 @@ index df0b929ce..ac2f61881 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 66545faf4..51509dcf3 100644
+index 5b0d1a573..f060f6a3d 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1870,6 +1870,21 @@
+@@ -1872,6 +1872,21 @@
  egr()  # }}}
  
  
@@ -137,7 +137,7 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 28f86a5e0..ba2fb773a 100644
+index 04e8a8266..7cd3c30f8 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
 @@ -759,6 +759,8 @@ def new_window(
@@ -191,10 +191,10 @@ index 28f86a5e0..ba2fb773a 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index dd3f79eaf..3fe61176b 100644
+index 0b6e56956..765fcf1a0 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -715,6 +715,8 @@ def __init__(
+@@ -717,6 +717,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -203,7 +203,7 @@ index dd3f79eaf..3fe61176b 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -770,12 +772,14 @@ def __init__(
+@@ -772,12 +774,14 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -219,7 +219,7 @@ index dd3f79eaf..3fe61176b 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -840,6 +844,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -842,6 +846,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
