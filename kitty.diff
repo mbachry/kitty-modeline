@@ -19,10 +19,10 @@ index df0b929ce..ac2f61881 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 5b0d1a573..f060f6a3d 100644
+index 3a55053e5..baa561dc5 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1872,6 +1872,21 @@
+@@ -1883,6 +1883,21 @@
  egr()  # }}}
  
  
@@ -45,10 +45,10 @@ index 5b0d1a573..f060f6a3d 100644
  agr('colors', 'Color scheme')
  
 diff --git a/kitty/options/parse.py b/kitty/options/parse.py
-index cf2870707..d3f02f489 100644
+index 6f99de673..ad1679ba0 100644
 --- a/kitty/options/parse.py
 +++ b/kitty/options/parse.py
-@@ -1418,6 +1418,12 @@ def tab_title_max_length(self, val: str, ans: dict[str, typing.Any]) -> None:
+@@ -1424,6 +1424,12 @@ def tab_title_max_length(self, val: str, ans: dict[str, typing.Any]) -> None:
      def tab_title_template(self, val: str, ans: dict[str, typing.Any]) -> None:
          ans['tab_title_template'] = tab_title_template(val)
  
@@ -62,10 +62,10 @@ index cf2870707..d3f02f489 100644
          ans['term'] = str(val)
  
 diff --git a/kitty/options/types.py b/kitty/options/types.py
-index 2766de82d..fb5348b05 100644
+index cf7009fb1..9ccd36795 100644
 --- a/kitty/options/types.py
 +++ b/kitty/options/types.py
-@@ -407,6 +407,8 @@
+@@ -409,6 +409,8 @@
      'mark3_background',
      'mark3_foreground',
      'menu_map',
@@ -74,16 +74,16 @@ index 2766de82d..fb5348b05 100644
      'modify_font',
      'momentum_scroll',
      'mouse_hide_wait',
-@@ -682,6 +684,8 @@ class Options:
+@@ -686,6 +688,8 @@ class Options:
      tab_switch_strategy: choices_for_tab_switch_strategy = 'previous'
      tab_title_max_length: int = 0
-     tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{title}'
+     tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{secure_input_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{title}'
 +    modeline_command: str = ''
 +    modeline_bg_color: typing.Optional[kitty.fast_data_types.Color] = Color(40, 40, 40)
      term: str = 'xterm-kitty'
      terminfo_type: choices_for_terminfo_type = 'path'
      text_composition_strategy: str = 'platform'
-@@ -1704,4 +1708,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
+@@ -1708,4 +1712,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
  })
  
  
@@ -137,7 +137,7 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 04e8a8266..7cd3c30f8 100644
+index e1e17f901..f476280db 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
 @@ -759,6 +759,8 @@ def new_window(
@@ -191,10 +191,10 @@ index 04e8a8266..7cd3c30f8 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index 0b6e56956..765fcf1a0 100644
+index ff47fc309..3828dbf03 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -717,6 +717,8 @@ def __init__(
+@@ -720,6 +720,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -203,7 +203,7 @@ index 0b6e56956..765fcf1a0 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -772,12 +774,14 @@ def __init__(
+@@ -775,12 +777,14 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -219,7 +219,7 @@ index 0b6e56956..765fcf1a0 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -842,6 +846,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -845,6 +849,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
