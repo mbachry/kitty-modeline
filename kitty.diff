@@ -1,28 +1,28 @@
 diff --git a/kitty/child.py b/kitty/child.py
-index df0b929ce..ac2f61881 100644
+index c5b85693d..57899505d 100644
 --- a/kitty/child.py
 +++ b/kitty/child.py
-@@ -241,6 +241,7 @@ class Child:
-     child_fd: int | None = None
+@@ -244,6 +244,7 @@ class Child:
      pid: int | None = None
+     initial_termios_state: list[Any] | None = None
      forked = False
 +    child_tty: str | None = None
  
      def __init__(
          self,
-@@ -402,6 +403,7 @@ def fork(self) -> int | None:
-         pid = fast_data_types.spawn(
-             final_exe, cwd, tuple(argv), env, master, slave, stdin_read_fd, stdin_write_fd,
-             ready_read_fd, ready_write_fd, tuple(handled_signals), kitten_exe(), opts.forward_stdio, pass_fds)
+@@ -427,6 +428,7 @@ def fork(self) -> int | None:
+             opts.forward_stdio,
+             pass_fds,
+         )
 +        self.child_tty = os.ttyname(slave)
          os.close(slave)
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 3a55053e5..baa561dc5 100644
+index 8dd811768..184cae67c 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -1883,6 +1883,21 @@
+@@ -2351,6 +2351,21 @@
  egr()  # }}}
  
  
