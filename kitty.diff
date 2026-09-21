@@ -19,10 +19,10 @@ index 560a60040..e8d3e4f48 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index 3ef839681..456932300 100644
+index c5e3a4f14..2a5b0ff0b 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -2353,6 +2353,21 @@
+@@ -2464,6 +2464,21 @@
  egr()  # }}}
  
  
@@ -45,12 +45,12 @@ index 3ef839681..456932300 100644
  agr('colors', 'Color scheme')
  
 diff --git a/kitty/options/parse.py b/kitty/options/parse.py
-index 6f99de673..ad1679ba0 100644
+index 92069195d..36e47654a 100644
 --- a/kitty/options/parse.py
 +++ b/kitty/options/parse.py
-@@ -1424,6 +1424,12 @@ def tab_title_max_length(self, val: str, ans: dict[str, typing.Any]) -> None:
-     def tab_title_template(self, val: str, ans: dict[str, typing.Any]) -> None:
-         ans['tab_title_template'] = tab_title_template(val)
+@@ -1445,6 +1445,12 @@ def tab_title_template(self, val: str, ans: dict[str, typing.Any]) -> None:
+     def tab_title_wrap(self, val: str, ans: dict[str, typing.Any]) -> None:
+         ans['tab_title_wrap'] = tab_title_wrap(val)
  
 +    def modeline_command(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
 +        ans['modeline_command'] = str(val)
@@ -62,10 +62,10 @@ index 6f99de673..ad1679ba0 100644
          ans['term'] = str(val)
  
 diff --git a/kitty/options/types.py b/kitty/options/types.py
-index cf7009fb1..9ccd36795 100644
+index e35e9f1b3..48cc82d3d 100644
 --- a/kitty/options/types.py
 +++ b/kitty/options/types.py
-@@ -409,6 +409,8 @@
+@@ -411,6 +411,8 @@
      'mark3_background',
      'mark3_foreground',
      'menu_map',
@@ -74,16 +74,16 @@ index cf7009fb1..9ccd36795 100644
      'modify_font',
      'momentum_scroll',
      'mouse_hide_wait',
-@@ -686,6 +688,8 @@ class Options:
-     tab_switch_strategy: choices_for_tab_switch_strategy = 'previous'
-     tab_title_max_length: int = 0
+@@ -698,6 +700,8 @@ class Options:
+     tab_title_max_lines: int = 1
      tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{secure_input_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{title}'
+     tab_title_wrap: int = 0
 +    modeline_command: str = ''
 +    modeline_bg_color: typing.Optional[kitty.fast_data_types.Color] = Color(40, 40, 40)
      term: str = 'xterm-kitty'
      terminfo_type: choices_for_terminfo_type = 'path'
      text_composition_strategy: str = 'platform'
-@@ -1708,4 +1712,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
+@@ -1721,4 +1725,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
  })
  
  
@@ -137,10 +137,10 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index e1e17f901..f476280db 100644
+index 5b58b9671..2dab20f6a 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -759,6 +759,8 @@ def new_window(
+@@ -837,6 +837,8 @@ def new_window(
          next_to: Window | None = None,
          hold_after_ssh: bool = False,
          startup_command_via_shell_integration: Sequence[str] | str = (),
@@ -148,28 +148,26 @@ index e1e17f901..f476280db 100644
 +        is_modeline: bool = False,
      ) -> Window:
          cs = WindowCreationSpec(
-             use_shell=use_shell, cmd=cmd, has_stdin=bool(stdin), override_title=override_title, cwd_from=cwd_from,
-@@ -778,7 +780,8 @@ def new_window(
-         window = Window(
-             self, child, self.args, override_title=override_title,
-             copy_colors_from=copy_colors_from, watchers=watchers,
--            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords
-+            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords,
-+            scrollback_lines=scrollback_lines, is_modeline=is_modeline
+             use_shell=use_shell,
+@@ -882,6 +884,7 @@ def new_window(
+             watchers=watchers,
+             allow_remote_control=allow_remote_control,
+             remote_control_passwords=remote_control_passwords,
++            scrollback_lines=scrollback_lines, is_modeline=is_modeline,
          )
          window.creation_spec = cs
          # Must add child before laying out so that resize_pty succeeds
-@@ -790,6 +793,8 @@ def new_window(
-             except Exception:
+@@ -894,6 +897,8 @@ def new_window(
                  import traceback
+ 
                  traceback.print_exc()
 +        if not overlay_for:
 +            self.add_modeline(window)
          return window
  
      def new_special_window(
-@@ -811,6 +816,21 @@ def new_special_window(
-             hold=special_window.hold, remote_control_passwords=remote_control_passwords, pass_fds=pass_fds, remote_control_fd=remote_control_fd,
+@@ -926,6 +931,21 @@ def new_special_window(
+             remote_control_fd=remote_control_fd,
          )
  
 +    def add_modeline(self, window: Window):
@@ -191,10 +189,10 @@ index e1e17f901..f476280db 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index aa1096d1a..7353bc51c 100644
+index 16121aa80..af1ecec3d 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -743,6 +743,8 @@ def __init__(
+@@ -756,6 +756,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -203,7 +201,7 @@ index aa1096d1a..7353bc51c 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -798,12 +800,14 @@ def __init__(
+@@ -811,12 +813,14 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -219,7 +217,7 @@ index aa1096d1a..7353bc51c 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -875,6 +879,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -888,6 +892,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
@@ -229,7 +227,7 @@ index aa1096d1a..7353bc51c 100644
          if unit == 'pt':
              val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
 diff --git a/kitty/window_list.py b/kitty/window_list.py
-index de0f8deab..b7ae26edc 100644
+index 055ec2037..da65e0dc0 100644
 --- a/kitty/window_list.py
 +++ b/kitty/window_list.py
 @@ -8,7 +8,7 @@
@@ -241,7 +239,7 @@ index de0f8deab..b7ae26edc 100644
  from .types import OverlayType, WindowGeometry
  from .typing_compat import EdgeLiteral, TabType, WindowType
  
-@@ -32,6 +32,8 @@ class WindowGroup:
+@@ -31,6 +31,8 @@ class WindowGroup:
      def __init__(self) -> None:
          self.windows: list[WindowType] = []
          self.id = next(group_id_counter)
@@ -250,7 +248,7 @@ index de0f8deab..b7ae26edc 100644
  
      def __repr__(self) -> str:
          return f'WindowGroup(id={self.id}, windows={", ".join(str(w.id) for w in self.windows)})'
-@@ -76,6 +78,10 @@ def active_window_id(self) -> int:
+@@ -75,6 +77,10 @@ def active_window_id(self) -> int:
          return self.windows[-1].id if self.windows else 0
  
      def add_window(self, window: WindowType, head_of_group: bool = False) -> None:
@@ -261,7 +259,7 @@ index de0f8deab..b7ae26edc 100644
          if head_of_group:
              self.windows.insert(0, window)
          else:
-@@ -93,8 +99,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
+@@ -92,8 +98,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
          return True
  
      def remove_window(self, window: WindowType) -> None:
@@ -276,7 +274,7 @@ index de0f8deab..b7ae26edc 100644
  
      def serialize_state(self) -> dict[str, Any]:
          return {
-@@ -139,8 +151,23 @@ def effective_border(self) -> int:
+@@ -140,8 +152,23 @@ def effective_border(self) -> int:
          return w.effective_border()
  
      def set_geometry(self, geom: WindowGeometry) -> None:
@@ -301,7 +299,7 @@ index de0f8deab..b7ae26edc 100644
  
      @property
      def default_bg(self) -> Color:
-@@ -409,6 +436,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
+@@ -422,6 +449,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
              return
          for i, group in enumerate(self.groups):
              if q in group:
