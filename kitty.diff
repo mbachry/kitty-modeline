@@ -137,10 +137,10 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 5b58b9671..2dab20f6a 100644
+index 8a7c0f3f2..2171df3a7 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -837,6 +837,8 @@ def new_window(
+@@ -836,6 +836,8 @@ def new_window(
          next_to: Window | None = None,
          hold_after_ssh: bool = False,
          startup_command_via_shell_integration: Sequence[str] | str = (),
@@ -149,7 +149,7 @@ index 5b58b9671..2dab20f6a 100644
      ) -> Window:
          cs = WindowCreationSpec(
              use_shell=use_shell,
-@@ -882,6 +884,7 @@ def new_window(
+@@ -881,6 +883,7 @@ def new_window(
              watchers=watchers,
              allow_remote_control=allow_remote_control,
              remote_control_passwords=remote_control_passwords,
@@ -157,7 +157,7 @@ index 5b58b9671..2dab20f6a 100644
          )
          window.creation_spec = cs
          # Must add child before laying out so that resize_pty succeeds
-@@ -894,6 +897,8 @@ def new_window(
+@@ -893,6 +896,8 @@ def new_window(
                  import traceback
  
                  traceback.print_exc()
@@ -166,7 +166,7 @@ index 5b58b9671..2dab20f6a 100644
          return window
  
      def new_special_window(
-@@ -926,6 +931,21 @@ def new_special_window(
+@@ -925,6 +930,21 @@ def new_special_window(
              remote_control_fd=remote_control_fd,
          )
  
