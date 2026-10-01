@@ -19,10 +19,10 @@ index 560a60040..e8d3e4f48 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index c5e3a4f14..2a5b0ff0b 100644
+index 5f3e6c5a0..42736fc33 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -2464,6 +2464,21 @@
+@@ -2502,6 +2502,21 @@
  egr()  # }}}
  
  
@@ -45,10 +45,10 @@ index c5e3a4f14..2a5b0ff0b 100644
  agr('colors', 'Color scheme')
  
 diff --git a/kitty/options/parse.py b/kitty/options/parse.py
-index 92069195d..36e47654a 100644
+index 9ee0049df..85baae9e2 100644
 --- a/kitty/options/parse.py
 +++ b/kitty/options/parse.py
-@@ -1445,6 +1445,12 @@ def tab_title_template(self, val: str, ans: dict[str, typing.Any]) -> None:
+@@ -1449,6 +1449,12 @@ def tab_title_template(self, val: str, ans: dict[str, typing.Any]) -> None:
      def tab_title_wrap(self, val: str, ans: dict[str, typing.Any]) -> None:
          ans['tab_title_wrap'] = tab_title_wrap(val)
  
@@ -62,10 +62,10 @@ index 92069195d..36e47654a 100644
          ans['term'] = str(val)
  
 diff --git a/kitty/options/types.py b/kitty/options/types.py
-index e35e9f1b3..48cc82d3d 100644
+index 52801eebd..ae7ef6c42 100644
 --- a/kitty/options/types.py
 +++ b/kitty/options/types.py
-@@ -411,6 +411,8 @@
+@@ -412,6 +412,8 @@
      'mark3_background',
      'mark3_foreground',
      'menu_map',
@@ -74,7 +74,7 @@ index e35e9f1b3..48cc82d3d 100644
      'modify_font',
      'momentum_scroll',
      'mouse_hide_wait',
-@@ -698,6 +700,8 @@ class Options:
+@@ -699,6 +701,8 @@ class Options:
      tab_title_max_lines: int = 1
      tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{secure_input_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{title}'
      tab_title_wrap: int = 0
@@ -83,13 +83,6 @@ index e35e9f1b3..48cc82d3d 100644
      term: str = 'xterm-kitty'
      terminfo_type: choices_for_terminfo_type = 'path'
      text_composition_strategy: str = 'platform'
-@@ -1721,4 +1725,4 @@ def __setattr__(self, key: str, val: typing.Any) -> typing.Any:
- })
- 
- 
--secret_options = ('remote_control_password', 'file_transfer_confirmation_bypass')
-\ No newline at end of file
-+secret_options = ('remote_control_password', 'file_transfer_confirmation_bypass')
 diff --git a/kitty/rc/modeline.py b/kitty/rc/modeline.py
 new file mode 100644
 index 000000000..6f45e9ede
@@ -137,10 +130,10 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index 8a7c0f3f2..2171df3a7 100644
+index b16ab75c6..28e06f7b9 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -836,6 +836,8 @@ def new_window(
+@@ -838,6 +838,8 @@ def new_window(
          next_to: Window | None = None,
          hold_after_ssh: bool = False,
          startup_command_via_shell_integration: Sequence[str] | str = (),
@@ -149,7 +142,7 @@ index 8a7c0f3f2..2171df3a7 100644
      ) -> Window:
          cs = WindowCreationSpec(
              use_shell=use_shell,
-@@ -881,6 +883,7 @@ def new_window(
+@@ -883,6 +885,7 @@ def new_window(
              watchers=watchers,
              allow_remote_control=allow_remote_control,
              remote_control_passwords=remote_control_passwords,
@@ -157,7 +150,7 @@ index 8a7c0f3f2..2171df3a7 100644
          )
          window.creation_spec = cs
          # Must add child before laying out so that resize_pty succeeds
-@@ -893,6 +896,8 @@ def new_window(
+@@ -895,6 +898,8 @@ def new_window(
                  import traceback
  
                  traceback.print_exc()
@@ -166,7 +159,7 @@ index 8a7c0f3f2..2171df3a7 100644
          return window
  
      def new_special_window(
-@@ -925,6 +930,21 @@ def new_special_window(
+@@ -927,6 +932,21 @@ def new_special_window(
              remote_control_fd=remote_control_fd,
          )
  
