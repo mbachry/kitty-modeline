@@ -1,8 +1,8 @@
 diff --git a/kitty/child.py b/kitty/child.py
-index da9763129..bdcb2893c 100644
+index 313aa75e0..3ba7502c9 100644
 --- a/kitty/child.py
 +++ b/kitty/child.py
-@@ -386,6 +386,7 @@ class Child:
+@@ -450,6 +450,7 @@ class Child:
      # Wrapper processes kitty itself inserted around the command, outermost first
      kitty_wrappers: tuple[KittyWrapper, ...] = ()
      resolved_root_pid: int | None = None
@@ -10,7 +10,7 @@ index da9763129..bdcb2893c 100644
  
      def __init__(
          self,
-@@ -579,6 +580,7 @@ def fork(self) -> int | None:
+@@ -660,6 +661,7 @@ def fork(self) -> int | None:
              opts.forward_stdio,
              pass_fds,
          )
@@ -19,7 +19,7 @@ index da9763129..bdcb2893c 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index f82517150..1d5be93c7 100644
+index ea80c67e1..8b33513fd 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
 @@ -2594,6 +2594,21 @@
@@ -137,19 +137,19 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index f1085da11..1c4ed4890 100644
+index d914d03c8..47f2d93ee 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -925,6 +925,8 @@ def new_window(
-         dock: DockSpec | None = None,
-         dock_owner: WindowGroup | None = None,
+@@ -1047,6 +1047,8 @@ def new_window(
          restored_scrollback: bytes = b'',
+         os_window_dock: bool = False,
+         launch_request: LaunchRequest | None = None,
 +        scrollback_lines: Optional[int] = None,
 +        is_modeline: bool = False,
      ) -> Window:
-         "Create a new window. When dock is specified, the window is docked to dock_owner or to the tab if dock_owner is None."
-         cs = WindowCreationSpec(
-@@ -971,6 +973,7 @@ def new_window(
+         """
+         Create a new window. When dock is specified, the window is docked to
+@@ -1099,6 +1101,7 @@ def new_window(
              watchers=watchers,
              allow_remote_control=allow_remote_control,
              remote_control_passwords=remote_control_passwords,
@@ -157,7 +157,7 @@ index f1085da11..1c4ed4890 100644
          )
          window.creation_spec = cs
          window.restored_scrollback = restored_scrollback
-@@ -986,6 +989,8 @@ def new_window(
+@@ -1122,6 +1125,8 @@ def new_window(
                  import traceback
  
                  traceback.print_exc()
@@ -166,8 +166,8 @@ index f1085da11..1c4ed4890 100644
          return window
  
      def new_special_window(
-@@ -1018,6 +1023,21 @@ def new_special_window(
-             remote_control_fd=remote_control_fd,
+@@ -1155,6 +1160,21 @@ def new_special_window(
+             launch_request=special_window.launch_request,
          )
  
 +    def add_modeline(self, window: Window):
@@ -189,10 +189,10 @@ index f1085da11..1c4ed4890 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index bf0c7a3fd..9b1fd5e5b 100644
+index cd1eb629b..40b8219c4 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
-@@ -785,6 +785,8 @@ def __init__(
+@@ -836,6 +836,8 @@ def __init__(
          watchers: Watchers | None = None,
          allow_remote_control: bool = False,
          remote_control_passwords: dict[str, Sequence[str]] | None = None,
@@ -201,7 +201,7 @@ index bf0c7a3fd..9b1fd5e5b 100644
      ):
          if watchers:
              self.watchers = watchers
-@@ -842,7 +844,8 @@ def __init__(
+@@ -893,7 +895,8 @@ def __init__(
          self.child = child
          cell_width, cell_height = cell_size_for_window(self.os_window_id)
          opts = get_options()
@@ -211,7 +211,7 @@ index bf0c7a3fd..9b1fd5e5b 100644
          self.screen.track_activity = bool(opts.tab_activity_symbol)
          self.session_color_schemes = SessionColorSchemes()
          if copy_colors_from is not None:
-@@ -851,6 +854,7 @@ def __init__(
+@@ -902,6 +905,7 @@ def __init__(
          self.remote_control_passwords = remote_control_passwords
          self.allow_remote_control = allow_remote_control
          self.scroll_animation = ScrollAnimation()
@@ -219,7 +219,7 @@ index bf0c7a3fd..9b1fd5e5b 100644
  
      def remote_control_allowed(self, pcmd: dict[str, Any], extra_data: dict[str, Any]) -> bool:
          if not self.allow_remote_control:
-@@ -926,6 +930,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
+@@ -977,6 +981,8 @@ def patch_edge_width(self, which: str, edge: EdgeLiteral, val: float | None) ->
              self.update_effective_padding()
  
      def effective_border(self) -> int:
@@ -229,7 +229,7 @@ index bf0c7a3fd..9b1fd5e5b 100644
          if unit == 'pt':
              val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
 diff --git a/kitty/window_list.py b/kitty/window_list.py
-index d348ee940..a4089c1b9 100644
+index 9afafba05..1934b6de1 100644
 --- a/kitty/window_list.py
 +++ b/kitty/window_list.py
 @@ -8,7 +8,7 @@
@@ -238,10 +238,10 @@ index d348ee940..a4089c1b9 100644
  
 -from .fast_data_types import Color, get_options
 +from .fast_data_types import Color, cell_size_for_window, get_boss, get_options
- from .types import DockSpec, OverlayType, WindowGeometry
+ from .types import DockScope, DockSpec, OverlayType, WindowGeometry
  from .typing_compat import EdgeLiteral, TabType, WindowType
  
-@@ -66,6 +66,8 @@ def __init__(self, dock: DockSpec | None = None) -> None:
+@@ -68,6 +68,8 @@ def __init__(self, dock: DockSpec | None = None, dock_scope: DockScope = 'tab')
          self.docks: list[WindowGroup] = []
          # The geometry the layout allocated to this group, includes the area of its docks
          self.allocated_geometry: WindowGeometry | None = None
@@ -250,7 +250,7 @@ index d348ee940..a4089c1b9 100644
  
      def __repr__(self) -> str:
          return f'WindowGroup(id={self.id}, windows={", ".join(str(w.id) for w in self.windows)})'
-@@ -110,6 +112,10 @@ def active_window_id(self) -> int:
+@@ -112,6 +114,10 @@ def active_window_id(self) -> int:
          return self.windows[-1].id if self.windows else 0
  
      def add_window(self, window: WindowType, head_of_group: bool = False) -> None:
@@ -261,7 +261,7 @@ index d348ee940..a4089c1b9 100644
          if head_of_group:
              self.windows.insert(0, window)
          else:
-@@ -127,8 +133,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
+@@ -129,8 +135,14 @@ def move_window_to_top_of_group(self, window: WindowType) -> bool:
          return True
  
      def remove_window(self, window: WindowType) -> None:
@@ -276,7 +276,7 @@ index d348ee940..a4089c1b9 100644
  
      def serialize_state(self) -> dict[str, Any]:
          ans: dict[str, Any] = {
-@@ -196,8 +208,23 @@ def set_geometry(self, geom: WindowGeometry) -> None:
+@@ -203,8 +215,23 @@ def set_geometry(self, geom: WindowGeometry) -> None:
      def set_content_geometry(self, geom: WindowGeometry) -> None:
          if self.windows and self.windows[0].show_title_bar and geom.ynum > 1:
              geom = compensatory_padding_away_from_title_bar(geom, get_options().window_title_bar == 'top')
@@ -301,7 +301,7 @@ index d348ee940..a4089c1b9 100644
  
      @property
      def default_bg(self) -> Color:
-@@ -586,6 +613,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
+@@ -664,6 +691,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
          except KeyError:
              return
          if (group := self.group_for_window(q)) is not None:
