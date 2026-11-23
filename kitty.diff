@@ -1,5 +1,5 @@
 diff --git a/kitty/child.py b/kitty/child.py
-index 313aa75e0..3ba7502c9 100644
+index fa074eee8..c02c692f2 100644
 --- a/kitty/child.py
 +++ b/kitty/child.py
 @@ -450,6 +450,7 @@ class Child:
@@ -10,7 +10,7 @@ index 313aa75e0..3ba7502c9 100644
  
      def __init__(
          self,
-@@ -660,6 +661,7 @@ def fork(self) -> int | None:
+@@ -721,6 +722,7 @@ def fork(self) -> int | None:
              opts.forward_stdio,
              pass_fds,
          )
@@ -19,10 +19,10 @@ index 313aa75e0..3ba7502c9 100644
          self.pid = pid
          self.child_fd = master
 diff --git a/kitty/options/definition.py b/kitty/options/definition.py
-index ea80c67e1..8b33513fd 100644
+index 499f2161a..d8881aa6f 100644
 --- a/kitty/options/definition.py
 +++ b/kitty/options/definition.py
-@@ -2594,6 +2594,21 @@
+@@ -2603,6 +2603,21 @@
  egr()  # }}}
  
  
@@ -137,10 +137,10 @@ index 000000000..6f45e9ede
 +
 +modeline = Modeline()
 diff --git a/kitty/tabs.py b/kitty/tabs.py
-index d914d03c8..47f2d93ee 100644
+index 1001ec9f0..d0c61114e 100644
 --- a/kitty/tabs.py
 +++ b/kitty/tabs.py
-@@ -1047,6 +1047,8 @@ def new_window(
+@@ -1059,6 +1059,8 @@ def new_window(
          restored_scrollback: bytes = b'',
          os_window_dock: bool = False,
          launch_request: LaunchRequest | None = None,
@@ -149,7 +149,7 @@ index d914d03c8..47f2d93ee 100644
      ) -> Window:
          """
          Create a new window. When dock is specified, the window is docked to
-@@ -1099,6 +1101,7 @@ def new_window(
+@@ -1111,6 +1113,7 @@ def new_window(
              watchers=watchers,
              allow_remote_control=allow_remote_control,
              remote_control_passwords=remote_control_passwords,
@@ -157,7 +157,7 @@ index d914d03c8..47f2d93ee 100644
          )
          window.creation_spec = cs
          window.restored_scrollback = restored_scrollback
-@@ -1122,6 +1125,8 @@ def new_window(
+@@ -1134,6 +1137,8 @@ def new_window(
                  import traceback
  
                  traceback.print_exc()
@@ -166,7 +166,7 @@ index d914d03c8..47f2d93ee 100644
          return window
  
      def new_special_window(
-@@ -1155,6 +1160,21 @@ def new_special_window(
+@@ -1167,6 +1172,21 @@ def new_special_window(
              launch_request=special_window.launch_request,
          )
  
@@ -189,7 +189,7 @@ index d914d03c8..47f2d93ee 100644
      def close_other_windows_in_tab(self) -> None:
          if len(self.windows) > 1:
 diff --git a/kitty/window.py b/kitty/window.py
-index cd1eb629b..40b8219c4 100644
+index 0253679f1..bd3eff6bc 100644
 --- a/kitty/window.py
 +++ b/kitty/window.py
 @@ -836,6 +836,8 @@ def __init__(
@@ -229,7 +229,7 @@ index cd1eb629b..40b8219c4 100644
          if unit == 'pt':
              val = max(1 if val > 0 else 0, pt_to_px(val, self.os_window_id))
 diff --git a/kitty/window_list.py b/kitty/window_list.py
-index 9afafba05..1934b6de1 100644
+index d7f4d3efb..f5012f528 100644
 --- a/kitty/window_list.py
 +++ b/kitty/window_list.py
 @@ -8,7 +8,7 @@
@@ -301,7 +301,7 @@ index 9afafba05..1934b6de1 100644
  
      @property
      def default_bg(self) -> Color:
-@@ -664,6 +691,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
+@@ -675,6 +702,8 @@ def set_active_window_group_for(self, x: WindowOrId, for_keep_focus: WindowType
          except KeyError:
              return
          if (group := self.group_for_window(q)) is not None:
